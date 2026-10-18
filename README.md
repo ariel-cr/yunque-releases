@@ -1,79 +1,97 @@
-# Yunque — distribución de binarios
+# Yunque — binary distribution
 
-Subagentes nativos para desarrollar juegos Godot desde OpenCode, Codex y Claude Code. Este repositorio distribuye los instaladores y binarios; el código fuente está en un repositorio privado.
+Native specialist agents for Godot game development in OpenCode, Codex, and Claude Code. This repository distributes installers and compiled binaries. Source code is maintained in a private repository.
 
-## Instalación
+## Install
 
-Linux y macOS:
+Linux and macOS:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ariel-cr/yunque-releases/main/install.sh | bash
 ```
 
-Windows, desde PowerShell:
+Windows, from PowerShell:
 
 ```powershell
 irm https://raw.githubusercontent.com/ariel-cr/yunque-releases/main/install.ps1 | iex
 ```
 
-El instalador descarga el binario y registra siete especialistas y una skill coordinadora en los anfitriones detectados. Conserva archivos y configuraciones ajenos. Reinicia el anfitrión y abre la carpeta de tu juego: `project.godot` debe estar en el directorio actual o en un ancestro.
+The installer downloads the binary and registers seven specialists plus a coordination skill in every detected host. It preserves unrelated files and configuration. Successful installation displays the Yunque ASCII banner and a short confirmation; registration failures retain their diagnostic details.
 
-No necesitas aprender comandos para conversar. Pide tu tarea normalmente en el anfitrión; este selecciona los especialistas pertinentes. Una consulta sencilla no activa todo un equipo. El modelo, las herramientas y los permisos son los del anfitrión. La decisión de seleccionar skills y delegar depende de sus capacidades y configuración.
+Restart your host, then open your game directory. `project.godot` must be in the current directory or an ancestor.
 
-## Ubicaciones
+## Use your usual chat
 
-El binario se instala en `~/.local/bin` (Linux/macOS) o `%LOCALAPPDATA%\Yunque` (Windows). Los subagentes usan las rutas nativas de cada anfitrión:
+Ask for work normally in your host. It selects relevant specialists for game design, programming, art, audio, production, QA, or narrative. Simple questions do not require a whole team. The host supplies its model, tools, authentication, and permissions; skill selection and delegation depend on its capabilities and configuration.
 
-- Codex: `~/.codex/agents`; skill en `~/.agents/skills/yunque`.
-- Claude Code: `~/.claude/agents` y `~/.claude/skills/yunque`.
-- OpenCode: `~/.config/opencode/agents` y `~/.config/opencode/skills/yunque`.
+Specialists consult relevant local knowledge cards and cite their sources when appropriate. They are specialized through instructions and reference material, rather than separately trained models. They still need to verify their work.
 
-Se respetan las variables de configuración de los anfitriones. Si instalas un anfitrión después, ejecuta `yunque install-agents`; puedes elegirlo con `--agent codex`, `--agent claude` o `--agent opencode`. `agents-status` muestra el estado y `uninstall-agents` retira archivos administrados sin modificaciones.
+## Installation locations
 
-Para fijar versión o carpeta en Bash, guarda primero el instalador y pasa las variables al proceso que lo ejecuta:
+The binary is installed to `~/.local/bin` on Linux/macOS or `%LOCALAPPDATA%\Yunque` on Windows. Agents use each host's native global directories:
+
+| Host | Agent directory | Coordination skill |
+|---|---|---|
+| Codex | `~/.codex/agents` | `~/.agents/skills/yunque` |
+| Claude Code | `~/.claude/agents` | `~/.claude/skills/yunque` |
+| OpenCode | `~/.config/opencode/agents` | `~/.config/opencode/skills/yunque` |
+
+Host configuration overrides are respected: `CODEX_HOME`, `CLAUDE_CONFIG_DIR`, `OPENCODE_CONFIG_DIR`, and `XDG_CONFIG_HOME`. Codex's personal skill directory is independent of `CODEX_HOME`.
+
+If you install another host later, run `yunque install-agents`. You can choose one with `--agent codex`, `--agent claude`, or `--agent opencode`. `yunque agents-status` shows managed files, and `yunque uninstall-agents` removes only unmodified managed files.
+
+To pin a version or installation directory in Bash, download the installer first and pass variables to the process that runs it:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/ariel-cr/yunque-releases/main/install.sh -o /tmp/install-yunque.sh
 YUNQUE_VERSION=v0.1.0 YUNQUE_INSTALL_DIR="$HOME/.local/bin" bash /tmp/install-yunque.sh
 ```
 
-## Biblias, contexto e idioma por proyecto
+PowerShell also supports the `YUNQUE_VERSION` and `YUNQUE_INSTALL_DIR` environment variables.
 
-Cada juego guarda su memoria en `.yunque/`, junto a `project.godot`: `contexto.md`,
-`decisiones.md`, `pendientes.md`, `assets.json`, `biblias/` y `personajes/`.
-Los agentes leen esos documentos al retomar y el coordinador combina y guarda los
-cambios al cerrar una tarea. La actualización del binario no borra esa memoria.
-Los documentos y biblias anteriores se descubren y conservan sin migración automática.
+## Project bibles, context, and language
 
-El contenido nuevo se redacta en el idioma en que el usuario habla a la IA. Los
-textos existentes conservan su idioma y se traducen sólo si se solicita. Las rutas
-y campos técnicos permanecen estables. El anfitrión redacta y actualiza los documentos;
-Yunque persiste UTF-8 y rechaza escrituras con una revisión obsoleta. No se añade
-una API de traducción ni un modelo propio. Inicializar prepara estructura y archivos
-vacíos; el agente completa la información real del juego sin comandos manuales del usuario.
+Each game keeps its memory in `.yunque/` next to `project.godot`:
 
-La memoria puede compartirse con el proyecto mediante tu control de versiones;
-no incluye el historial completo del chat ni debe contener secretos. Su lectura y
-actualización por el modelo dependen del cumplimiento de las instrucciones nativas
-por parte del anfitrión. Reinícialo después de actualizar para cargar esas instrucciones.
+```text
+.yunque/
+  contexto.md       # Current goal, state, and verification evidence
+  decisiones.md     # Accepted decisions and their reasons
+  pendientes.md     # Next steps and blockers
+  assets.json       # References, provenance, and licenses
+  biblias/          # Bibles for the relevant specialties
+  personajes/       # Character canon and references
+  memory.json       # Update language and document metadata
+  .gdignore         # Exclude the memory directory from Godot imports
+```
 
-## Assets y claves
+Agents are instructed to read these documents when resuming work. The coordinator merges and saves relevant updates at the end of a task. Updating Yunque does not delete game memory. Existing documents and bibles are discovered and preserved without automatic conversion.
 
-El agente recomienda servicios cuando corresponda y ofrece preparar un `.env`. Solo con consentimiento crea nombres de variables vacías. El usuario escribe las claves localmente; no se solicitan por chat. Se conserva el `.env` existente y se añaden exclusiones Git. Esto no carga las variables en Godot ni autoriza llamadas de pago. No exportes secretos en el juego.
+**New content follows the language you use to speak to the AI.** Existing text keeps its language and is translated only on request. Paths, role identifiers, and technical fields remain stable. English repository documentation does not force English game documents.
 
-## Descarga manual y requisitos
+The host writes and updates the documents. Yunque stores UTF-8 content and rejects writes based on an outdated document hash. Initialization creates directories and empty documents for the agent to populate with actual project facts. You do not need to run memory commands yourself.
 
-[Descargas por versión](https://github.com/ariel-cr/yunque-releases/releases):
+You can share or back up memory through your project's version control. It does not include the full chat history and must not contain secrets. Model-driven reading and updating depend on the host following its native instructions. Restart the host after updates to load them.
 
-| Plataforma | Archivo |
+## Assets and API keys
+
+The host recommends suitable services when needed and offers to prepare an `.env` template. Only after consent does it create empty variables. Fill in keys locally; never paste them into chat. Existing `.env` content is preserved, and Git ignore rules are added.
+
+Creating a template does not load environment variables in Godot, call a service's API, or authorize spending. Keep secrets out of exported games.
+
+## Manual downloads and requirements
+
+Download a binary from the [releases page](https://github.com/ariel-cr/yunque-releases/releases):
+
+| Platform | Asset |
 |---|---|
 | Linux x86_64 | `yunque-linux-x86_64` |
 | Windows x86_64 | `yunque-windows-x86_64.exe` |
 | macOS Intel | `yunque-macos-x86_64` |
 | macOS Apple Silicon | `yunque-macos-arm64` |
 
-No necesitas Python para usar el binario. Necesitas un anfitrión compatible y Godot para ejecutar sus herramientas locales. Tras una descarga manual, ejecuta `yunque install-agents --binary /ruta/absoluta/yunque`.
+Python is not required to use a binary. You need a compatible host; Godot must be installed to run the local Godot utilities. After a manual download, run `yunque install-agents --binary /absolute/path/to/yunque`. On Windows, invoke the downloaded executable from PowerShell with its absolute path.
 
-Los subagentes globales pueden verse fuera de Godot; sus instrucciones exigen detenerse y las herramientas locales rechazan trabajar allí. Yunque no añade un sandbox a las herramientas del anfitrión.
+Global agents can remain visible outside Godot projects. Their instructions require them to stop, and Yunque's local tools reject project operations there. Yunque does not add a sandbox to the host's native tools.
 
-Proyecto privado; los binarios se proporcionan para uso autorizado.
+Private project. Binaries are provided for authorized use.
